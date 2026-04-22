@@ -81,6 +81,24 @@ const App = () => {
         });
     };
 
+    const downloadReport = async () => {
+        try {
+            const res = await axios.get('http://localhost:8000/report');
+            const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: "application/json" });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `edge-sim-report-${res.data.algorithm}.json`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error("Failed to generate report", e);
+            alert("Failed to generate report.");
+        }
+    };
+
     if (!state) return <div style={{ color: '#fff', padding: '20px' }}>Loading Edge Simulation Data... (This takes a few seconds)</div>;
 
     return (
@@ -96,8 +114,11 @@ const App = () => {
                         <button onClick={stepSim} style={btnStyle}>Step</button>
                         <button onClick={handleReset} style={{ ...btnStyle, background: '#ba3030' }}>Reset</button>
                     </div>
-                    <button onClick={toggleAlgo} style={{ ...btnStyle, width: '100%', background: '#007acc', marginBottom: '15px' }}>
+                    <button onClick={toggleAlgo} style={{ ...btnStyle, width: '100%', background: '#007acc', marginBottom: '10px' }}>
                         Algorithm: {algo.toUpperCase()}
+                    </button>
+                    <button onClick={downloadReport} style={{ ...btnStyle, width: '100%', background: '#4CAF50', marginBottom: '15px' }}>
+                        Download Performance Report
                     </button>
                     
                     <div style={{ fontSize: '12px', marginTop: '10px' }}>
@@ -157,6 +178,11 @@ const App = () => {
                         <span style={{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '50%', border: '2px solid #00ffff', background: 'rgba(0, 255, 255, 0.3)', marginRight: '6px', boxShadow: '0 0 8px #00ffff' }}></span>
                         Transmitting Edge Hub
                     </div>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px', fontSize: '12px' }}>
+                        <span style={{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '50%', border: '2px solid #555', background: 'rgba(85, 85, 85, 0.1)', marginRight: '6px' }}></span>
+                        Offline / Dead Edge Hub
+                    </div>
                 </div>
 
                 <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
@@ -193,21 +219,23 @@ const App = () => {
                         />
                     ))}
                     
-                    {state.hubs && state.hubs.map((hub, idx) => (
+                    {state.hubs && state.hubs.map((hub, idx) => {
+                        const hubColor = !hub.online ? '#555555' : (hub.active ? '#00ffff' : '#00aa00');
+                        return (
                         <Circle 
                             key={`hub-${idx}`}
                             center={[hub.lat, hub.lon]} 
                             radius={hub.range} 
                             pathOptions={{ 
-                                color: hub.active ? '#00ffff' : '#00aa00', 
-                                fillColor: hub.active ? '#00ffff' : '#00aa00', 
-                                fillOpacity: hub.active ? 0.3 : 0.05, 
-                                weight: hub.active ? 3 : 1 
+                                color: hubColor, 
+                                fillColor: hubColor, 
+                                fillOpacity: !hub.online ? 0.1 : (hub.active ? 0.3 : 0.05), 
+                                weight: hub.active && hub.online ? 3 : 1 
                             }}
                         >
-                            <Popup>WiFi Hub {hub.id} <br/> Rate: {hub.rate} MB/s <br/> Status: {hub.active ? 'Transmitting' : 'Idle'}</Popup>
+                            <Popup>WiFi Hub {hub.id} <br/> Rate: {hub.rate} MB/s <br/> Status: {!hub.online ? 'OFFLINE' : (hub.active ? 'Transmitting' : 'Idle')}</Popup>
                         </Circle>
-                    ))}
+                    )})}
 
                     {state.vehicles && state.vehicles.map((v, idx) => {
                         const hasEvents = v.events && v.events.length > 0;
@@ -225,7 +253,7 @@ const App = () => {
                             >
                                 <Popup>
                                     Vehicle {v.id}<br/>Buffer: {v.buffer_mb.toFixed(2)} MB<br/>
-                                    Events: {hasEvents ? v.events.join(', ') : 'None'}
+                                    Events: {hasEvents ? v.events.map(ev => ev.type).join(', ') : 'None'}
                                 </Popup>
                             </CircleMarker>
                         );
