@@ -32,7 +32,7 @@ jobs:
           git config --global user.name "GitHub Actions"
 
           # Initialize isolated repo for HF Deployment
-          git init
+          git init -b main
           
           # Dynamically create the HF README.md with YAML frontmatter
           cat << 'EOF' > README.md
@@ -46,9 +46,6 @@ jobs:
           license: apache-2.0
           short_description: app for traffic simulation project
           ---
-
-          # Vehicular Edge-to-Cloud Data Offloading Simulation
-          # CCN Course Project
           EOF
           
           # Rename Dockerfile.app to Dockerfile for Hugging Face standard detection
