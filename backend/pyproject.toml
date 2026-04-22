@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "sim-backend"
+version = "0.1.0"
+description = "Simulation backend for vehicular traffic offloading"
+authors = ["Author <author@example.com>"]
+readme = "README.md"
+packages = [{include = "app", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.103.0"
+uvicorn = "^0.23.0"
+pydantic = "^2.3.0"
+osmnx = "^1.6.0"
+networkx = "^3.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

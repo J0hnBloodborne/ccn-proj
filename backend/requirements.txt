@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-osmnx
-networkx
-pydantic
-scipy
-numpy

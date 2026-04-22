@@ -1,0 +1,40 @@
+name: Deploy Train Space to Hugging Face
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/src/app/rl/**'
+      - 'backend/src/app/train_main.py'
+      - 'backend/pyproject.toml'
+      - 'backend/Dockerfile.train'
+      - '.github/workflows/deploy_train.yml'
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Push to HF Train Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_TRAIN_REPO: ${{ secrets.HF_TRAIN_REPO }}
+        run: |
+          cd backend/
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+          # Initialize isolated repo for HF Deployment
+          git init
+          git add src/ pyproject.toml Dockerfile.train
+          git commit -m "Deploy Trainer to HF Spaces"
+          
+          # Rename Dockerfile.train to Dockerfile for Hugging Face standard detection
+          mv Dockerfile.train Dockerfile
+          git add Dockerfile
+          git commit --amend -m "Deploy Trainer to HF Spaces"
+          
+          git push -f https://user:$HF_TOKEN@huggingface.co/spaces/$HF_TRAIN_REPO main
