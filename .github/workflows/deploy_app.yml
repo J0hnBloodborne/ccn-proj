@@ -1,0 +1,60 @@
+name: Deploy App Space to Hugging Face
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/src/core/**'
+      - 'backend/src/api/**'
+      - 'backend/src/simulation/**'
+      - 'backend/src/main.py'
+      - 'backend/pyproject.toml'
+      - 'backend/Dockerfile.app'
+      - '.github/workflows/deploy_app.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Push to HF App Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_APP_REPO: ${{ secrets.HF_APP_REPO }}
+        run: |
+          cd backend/
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+          # Initialize isolated repo for HF Deployment
+          git init
+          
+          # Dynamically create the HF README.md with YAML frontmatter
+          cat << 'EOF' > README.md
+          ---
+          title: TrafficSimApp
+          emoji: 🚗
+          colorFrom: gray
+          colorTo: red
+          sdk: docker
+          pinned: false
+          license: apache-2.0
+          short_description: app for traffic simulation project
+          ---
+
+          # Vehicular Edge-to-Cloud Data Offloading Simulation
+          # CCN Course Project
+          EOF
+          
+          # Rename Dockerfile.app to Dockerfile for Hugging Face standard detection
+          mv Dockerfile.app Dockerfile
+          
+          git add src/ pyproject.toml Dockerfile README.md
+          git commit -m "Deploy App to HF Spaces"
+          
+          git push -f https://user:$HF_TOKEN@huggingface.co/spaces/$HF_APP_REPO main
