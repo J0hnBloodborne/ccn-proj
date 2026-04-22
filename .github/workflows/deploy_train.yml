@@ -30,7 +30,7 @@ jobs:
           git config --global user.name "GitHub Actions"
 
           # Initialize isolated repo for HF Deployment
-          git init
+          git init -b main
           
           # Dynamically create the HF README.md with YAML frontmatter
           cat << 'EOF' > README.md
