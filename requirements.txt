@@ -1,0 +1,12 @@
+# Requirements for Vehicular Data Offloading Simulation
+
+# Core dependencies
+pygame>=2.1.0
+
+# RL/Machine Learning
+gymnasium>=0.28.0
+numpy>=1.21.0
+
+# Optional (for future extensions)
+# stable-baselines3>=2.0.0  # For DQN/PPO agents
+# torch>=1.9.0  # For neural network training
